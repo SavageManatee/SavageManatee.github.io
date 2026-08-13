@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Slot Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --grad-start:  #1e3a8a;
+    --grad-mid:    #065f46;
+    --grad-end:    #047857;
+    --accent:      #34d399;
+    --accent-dim:  rgba(52, 211, 153, 0.15);
+    --accent-glow: rgba(52, 211, 153, 0.25);
+    --row-hover:   rgba(52, 211, 153, 0.09);
+    --card-bg:     rgba(255, 255, 255, 0.07);
+    --card-border: rgba(255, 255, 255, 0.16);
+    --text:        #ffffff;
+    --text-muted:  rgba(255, 255, 255, 0.70);
+    --text-dim:    rgba(255, 255, 255, 0.40);
+    --amber:       #fbbf24;
+    --amber-dim:   rgba(251, 191, 36, 0.15);
+}
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 17px;
+            background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 55%, var(--grad-end) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0; }
+        .orb-1 { width: 480px; height: 480px; background: #3b82f6; top: -120px; left: -120px; }
+        .orb-2 { width: 360px; height: 360px; background: #10b981; bottom: -80px; right: -80px; }
+        .orb-3 { width: 240px; height: 240px; background: #6366f1; top: 40%; left: 60%; }
+
+        .wrapper {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto;
+            padding: 60px 32px 80px;
+        }
+
+        .header { text-align: center; margin-bottom: 36px; animation: fadeUp 0.7s ease both; }
+        .header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px; }
+        .header h1 span {
+            background: linear-gradient(90deg, #a7f3d0, #6ee7b7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .header p { font-size: 1.05rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
+        .divider { width: 48px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); margin: 24px auto 0; border-radius: 2px; }
+
+.card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.entry-card { padding: 24px 28px; margin-bottom: 28px; animation: fadeUp 0.7s 0.1s ease both; }
+
+.filter-group label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 40px 10px 16px;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2334d399' d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%2334d399' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+select:focus, select:hover {
+    border-color: rgba(52, 211, 153, 0.45);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+select:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+select option {
+    background: #0f3460;
+    color: #fff;
+}
+
+.firmware-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.35s ease; margin-bottom: 24px; opacity: 0; transform: translateY(14px); }
+.firmware-card.visible { opacity: 1; transform: translateY(0); }
+.firmware-card:hover { background: var(--row-hover); transform: translateY(0); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.firmware-card:last-child { margin-bottom: 0; }
+.firmware-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--card-border);
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0 -24px 24px -24px;
+}
+.firmware-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.firmware-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+.firmware-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+.firmware-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    color: #ffffff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    margin-bottom: 2px;
+}
+
+.slot-result {
+    padding: 34px 20px;
+    text-align: center;
+}
+.slot-result .slot-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+}
+.slot-result .slot-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 3.2rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    text-shadow: 0 0 30px var(--accent-glow);
+}
+.slot-result .slot-sub {
+    margin-top: 14px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 300;
+}
+.slot-result .slot-sub code {
+    font-family: 'DM Mono', monospace;
+    background: rgba(255,255,255,0.08);
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: var(--text);
+}
+
+.state-msg {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    font-weight: 300;
+}
+.state-msg .icon { display: block; font-size: 2.4rem; margin-bottom: 16px; opacity: 0.6; }
+
+.footer {
+    text-align: center;
+    margin-top: 64px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    animation: fadeUp 0.7s 0.5s ease both;
+}
+.footer span {
+    display: inline-block;
+    width: 3px; height: 3px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 8px;
+    vertical-align: middle;
+    opacity: 0.6;
+}
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="wrapper">
+        <header class="header">
+            <h1>ExaGrid <span>Memory Slot Map</span></h1>
+            <p>Look up the physical DIMM slot location for a given motherboard and slot number</p>
+            <div class="divider"></div>
+        </header>
+
+        <section class="card entry-card" id="helpCard">
+            <div class="firmware-header" style="margin: 0 0 20px 0;">
+                <div class="firmware-header-left">
+                    <div class="firmware-icon">❓</div>
+                    <div>
+                        <div class="firmware-meta">How To</div>
+                        <div class="firmware-title">Find the Slot Number (snum)</div>
+                    </div>
+                </div>
+            </div>
+            <p style="color: var(--text-muted); font-weight: 300; line-height: 1.7; margin-bottom: 16px;">
+                The slot number comes from the SEL event in the burn-in / diagnostic log output. Look for a line containing
+                <code style="font-family: 'DM Mono', monospace; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 6px; color: var(--text);">Memory #</code>
+                — the two characters immediately after it are the snum.
+            </p>
+            <pre style="font-family: 'DM Mono', monospace; font-size: 0.85rem; line-height: 1.7; background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 20px; overflow-x: auto; color: var(--text-muted); white-space: pre-wrap;">ERROR: 08/11/26 05:04:52  Test failed due to SEL events
+ERROR: 08/11/26 05:04:52  0007 01/01/70 02:22:57 MAJ SMI  Memory #<span style="color: var(--accent); font-weight: 600;">d8</span>  ECC limit reached, DIMM(0) 6f [a5 00 00]
+ERROR: 08/11/26 05:04:52  ERRORS DETECTED --- aborting test
+ERROR: 08/11/26 05:04:53  Errors during test:
+	Error: Checks failed: SEL</pre>
+            <p style="color: var(--text-muted); font-weight: 300; margin-top: 14px;">
+                In this example, <code style="font-family: 'DM Mono', monospace; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 6px; color: var(--accent);">Memory #d8</code> means the slot number is <strong style="color: var(--text);">d8</strong> — select it below once you've chosen the matching motherboard.
+            </p>
+        </section>
+
+        <section class="card entry-card">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label for="motherboardSelect">Select Motherboard Model:</label>
+                    <select id="motherboardSelect">
+                        <option value="">-- Choose a Motherboard --</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="margin-top: 20px;">
+                    <label for="snumSelect">Select Slot Number:</label>
+                    <select id="snumSelect" disabled>
+                        <option value="">-- Choose a Motherboard First --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="results"></div>
+        </section>
+
+        <footer class="footer">
+            ExaGrid Systems — Manufacturing &amp; Hardware Engineering
+        </footer>
+    </div>
+
+    <script>
+        const MOTHERBOARD_MAPS = {
+            'SPC621D8': {
+                'd8': 'A1',
+                'da': 'B1',
+                'dc': 'C1',
+                'de': 'D1',
+                'e0': 'E1',
+                'e2': 'F1',
+                'e4': 'G1',
+                'e6': 'H1',
+            },
+            'E3C252D4U': {
+                'd8': 'A1',
+                'd9': 'A2',
+                'da': 'B1',
+                'db': 'B2',
+            },
+            'EC262D4U': {
+                'b0': 'A1',
+                'b1': 'A2',
+                'b2': 'B1',
+                'b3': 'B2',
+            },
+            'GENOA2D24TM3-2L+': {
+                'e0': 'A1',
+                'e1': 'B1',
+                'e2': 'C1',
+                'e3': 'D1',
+                'e4': 'E1',
+                'e5': 'F1',
+                'e6': 'G1',
+                'e7': 'H1',
+                'e8': 'I1',
+                'e9': 'J1',
+                'ea': 'K1',
+                'eb': 'L1',
+                'ec': 'M1',
+                'ed': 'N1',
+                'ee': 'O1',
+                'ef': 'P1',
+                'f0': 'Q1',
+                'f1': 'R1',
+                'f2': 'S1',
+                'f3': 'T1',
+                'f4': 'U1',
+                'f5': 'V1',
+                'f6': 'W1',
+                'f7': 'X1',
+            },
+        };
+
+        const motherboardSelect = document.getElementById('motherboardSelect');
+        const snumSelect = document.getElementById('snumSelect');
+        const resultsDiv = document.getElementById('results');
+
+        // Populate motherboard dropdown
+        Object.keys(MOTHERBOARD_MAPS).forEach(mb => {
+            const opt = document.createElement('option');
+            opt.value = mb;
+            opt.textContent = mb;
+            motherboardSelect.appendChild(opt);
+        });
+
+        function resetSnumSelect(placeholder) {
+            snumSelect.innerHTML = '';
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = placeholder;
+            snumSelect.appendChild(opt);
+        }
+
+        function showNoResults(message) {
+            document.body.style.background = 'linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 55%, var(--grad-end) 100%)';
+            resultsDiv.innerHTML = `<div class="state-msg"><span class="icon">🧩</span>${message}</div>`;
+        }
+
+        function displaySlot(motherboardKey, snumKey) {
+            document.body.style.background = 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 55%, #1e3a8a 100%)';
+            const physicalSlot = MOTHERBOARD_MAPS[motherboardKey][snumKey];
+
+            resultsDiv.innerHTML = '';
+
+            const cardHtml = `<div class="firmware-card">
+                <div class="firmware-header">
+                    <div class="firmware-header-left">
+                        <div>
+                            <div class="firmware-meta">${motherboardKey}</div>
+                            <div class="firmware-title">Physical Slot Location</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slot-result">
+                    <div class="slot-eyebrow">Slot Number <code>${snumKey}</code> maps to</div>
+                    <div class="slot-value">${physicalSlot}</div>
+                    <div class="slot-sub">Motherboard <code>${motherboardKey}</code> &middot; Slot Number <code>${snumKey}</code></div>
+                </div>
+            </div>`;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cardHtml;
+            const card = tempDiv.firstElementChild;
+            resultsDiv.appendChild(card);
+            requestAnimationFrame(() => card.classList.add('visible'));
+        }
+
+        motherboardSelect.addEventListener('change', function(event) {
+            const selectedMotherboard = event.target.value;
+
+            if (!selectedMotherboard) {
+                resetSnumSelect('-- Choose a Motherboard First --');
+                snumSelect.disabled = true;
+                showNoResults('Select a motherboard, then a slot number, to view its physical slot location.');
+                return;
+            }
+
+            resetSnumSelect('-- Choose a Slot Number --');
+            snumSelect.disabled = false;
+
+            Object.keys(MOTHERBOARD_MAPS[selectedMotherboard]).forEach(snum => {
+                const opt = document.createElement('option');
+                opt.value = snum;
+                opt.textContent = snum;
+                snumSelect.appendChild(opt);
+            });
+
+            showNoResults('Now select a slot number to view its physical slot location.');
+        });
+
+        snumSelect.addEventListener('change', function(event) {
+            const selectedSnum = event.target.value;
+            const selectedMotherboard = motherboardSelect.value;
+
+            if (!selectedSnum || !selectedMotherboard) {
+                showNoResults('Select a motherboard, then a slot number, to view its physical slot location.');
+                return;
+            }
+
+            displaySlot(selectedMotherboard, selectedSnum);
+        });
+
+        // Initialize
+        showNoResults('Select a motherboard, then a slot number, to view its physical slot location.');
+    </script>
+</body>
+</html>
