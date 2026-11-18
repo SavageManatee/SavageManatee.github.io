@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motherboard Firmware Versions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --grad-start:  #1e3a8a;
+    --grad-mid:    #065f46;
+    --grad-end:    #047857;
+    --accent:      #34d399;
+    --accent-dim:  rgba(52, 211, 153, 0.15);
+    --accent-glow: rgba(52, 211, 153, 0.25);
+    --row-hover:   rgba(52, 211, 153, 0.09);
+    --card-bg:     rgba(255, 255, 255, 0.07);
+    --card-border: rgba(255, 255, 255, 0.16);
+    --text:        #ffffff;
+    --text-muted:  rgba(255, 255, 255, 0.70);
+    --text-dim:    rgba(255, 255, 255, 0.40);
+    --amber:       #fbbf24;
+    --amber-dim:   rgba(251, 191, 36, 0.15);
+}
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 17px;
+            background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 55%, var(--grad-end) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0; }
+        .orb-1 { width: 480px; height: 480px; background: #3b82f6; top: -120px; left: -120px; }
+        .orb-2 { width: 360px; height: 360px; background: #10b981; bottom: -80px; right: -80px; }
+        .orb-3 { width: 240px; height: 240px; background: #6366f1; top: 40%; left: 60%; }
+
+        .wrapper {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto;
+            padding: 60px 32px 80px;
+        }
+
+        .header { text-align: center; margin-bottom: 36px; animation: fadeUp 0.7s ease both; }
+        .header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px; }
+        .header h1 span {
+            background: linear-gradient(90deg, #a7f3d0, #6ee7b7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .header p { font-size: 1.05rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
+        .divider { width: 48px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); margin: 24px auto 0; border-radius: 2px; }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 7px;
+            font-size: 0.875rem; font-weight: 500; color: var(--text-muted);
+            text-decoration: none; margin-bottom: 36px; transition: color 0.2s;
+            animation: fadeUp 0.7s ease both;
+        }
+        .back-link:hover { color: var(--accent); }
+
+.card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.entry-card { padding: 24px 28px; margin-bottom: 28px; animation: fadeUp 0.7s 0.1s ease both; }
+
+select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 40px 10px 16px;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+select:focus, select:hover {
+    border-color: rgba(52, 211, 153, 0.45);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+select option {
+    background: #0f3460;
+    color: #fff;
+}
+
+        .firmware-grid { display: grid; gap: 30px; }
+.firmware-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.35s ease; margin-bottom: 24px; opacity: 0; transform: translateY(14px); }
+.firmware-card.visible { opacity: 1; transform: translateY(0); }
+.firmware-card:hover { background: var(--row-hover); transform: translateY(0); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.firmware-card:last-child { margin-bottom: 0; }
+.firmware-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--card-border);
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0 -24px 24px -24px;
+}
+.firmware-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.firmware-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+.firmware-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+.firmware-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    color: #ffffff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    margin-bottom: 2px;
+}
+.version-row { display: grid; grid-template-columns: 120px 1fr; gap: 15px; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.11); transition: background 0.15s; }
+.version-row:hover { background: var(--row-hover); }
+.version-row:last-child { border-bottom: none; }
+.version-label { font-family: 'DM Mono', monospace; font-size: 0.84rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; padding: 0; }
+.version-label-approved, .version-label-shipping { color: var(--accent); }
+.version-label-unapproved { color: #000000; }
+.version-value { display: flex; gap: 20px; align-items: center; }
+.version-text { font-family: 'Courier New', monospace; font-size: 1.05rem; color: var(--text); font-weight: 400; text-align: left; white-space: nowrap; }
+
+.important-notice { background: rgba(52, 211, 153, 0.04); border-radius: 16px; padding: 18px 26px 20px; border-top: 1px solid var(--card-border); margin-top: 24px; }
+.important-notice h3 { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); opacity: 0.85; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+.important-notice h3::before { content: ''; display: inline-block; width: 3px; height: 12px; background: var(--accent); border-radius: 2px; opacity: 0.7; }
+.important-notice p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; margin-bottom: 12px; }
+.important-notice .email-link { color: var(--accent); font-weight: 600; text-decoration: none; border-bottom: 2px solid var(--accent); transition: all 0.2s ease; }
+.important-notice .email-link:hover { color: var(--accent-glow); border-bottom-color: var(--accent-glow); }
+
+        .no-results { text-align: center; padding: 80px 20px; color: #6c757d; }
+
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .no-results svg { width: 100px; height: 100px; margin-bottom: 20px; opacity: 0.3; }
+        .no-results h3 { font-size: 1.8em; margin-bottom: 10px; color: #495057; }
+        .no-results p { font-size: 1.1em; }
+
+.footer {
+    text-align: center;
+    margin-top: 64px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    animation: fadeUp 0.7s 0.5s ease both;
+}
+.footer span {
+    display: inline-block;
+    width: 3px; height: 3px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 8px;
+    vertical-align: middle;
+    opacity: 0.6;
+}
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="wrapper">
+        <a class="back-link" href="index.html">&#8592; Back to Hardware Apps</a>
+        <header class="header">
+            <h1>ExaGrid <span>Hardware Firmware Versions</span></h1>
+            <p>View firmware versions for ExaGrid motherboards and RAID controllers</p>
+            <div class="divider"></div>
+        </header>
+
+        <section class="card entry-card">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label for="motherboardSelect">Select Motherboard Model:</label>
+                    <select id="motherboardSelect">
+                        <option value="">-- Choose a Motherboard --</option>
+                        <option value="GENOA2D24TM3">GENOA2D24TM3-2L+</option>
+                        <option value="SPC621D8">SPC621D8</option>
+                        <option value="EC262D4U">EC262D4U</option>
+                        <option value="E3C252D4U">E3C252D4U</option>
+                        <option value="X12SPL">X12SPL-F</option>
+                        <option value="X12STL">X12STL-F</option>
+                        <option value="H11SSL">H11SSL-i</option>
+                        <option value="X11SCH">X11SCH-LN4F</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="margin-top: 20px; margin-bottom: 20px;">
+                    <label for="raidSelect">Select RAID Controller Model:</label>
+                    <select id="raidSelect">
+                        <option value="">-- Choose a RAID Controller --</option>
+                        <option value="9560-8i">Broadcom 9560-8i</option>
+                        <option value="9460-8i">Broadcom 9460-8i</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="results"></div>
+        </section>
+
+        <footer class="footer">
+            ExaGrid Systems — Manufacturing &amp; Hardware Engineering - Internal Use Only
+        </footer>
+
+    </div>
+
+
+    <script>
+        const APPROVED_BIOS = {
+            GENOA2D24TM3_BIOS: '2.11.EG06',
+            SPC621D8_BIOS: 'P1.50',
+            EC262D4U_BIOS: '10.07',
+            E3C252D4U_BIOS: '5.03',
+            X12SPL_BIOS: '2.5',
+            X12STL_BIOS: '2.2',
+            H11SSL_BIOS: '3.4',
+            X11SCH_BIOS: '2.8',
+        };
+
+        const UNAPPROVED_BIOS = {
+            GENOA2D24TM3_UBIOS: '≠ 2.11.EG06',
+            SPC621D8_UBIOS: '< P1.40',
+            EC262D4U_UBIOS: null,
+            E3C252D4U_UBIOS: '< 2.03',
+            X12SPL_UBIOS: null,
+            X12STL_UBIOS: null,
+            H11SSL_UBIOS: '< 2.1',
+            X11SCH_UBIOS: '< 1.3',
+        };
+
+        const APPROVED_BMC = {
+            GENOA2D24TM3_BMC: '1.29.06',
+            SPC621D8_BMC: '4.07.00',
+            EC262D4U_BMC: '2.05.00',
+            E3C252D4U_BMC: '5.04.00',
+            X12SPL_BMC: '01.07.09',
+            X12STL_BMC: '01.13.10',
+            H11SSL_BMC: '01.52.23',
+            X11SCH_BMC: '01.74.19',
+        };
+
+        const UNAPPROVED_BMC = {
+            GENOA2D24TM3_UBMC: '≠ 1.29.06, ≠ 1.29.13',
+            SPC621D8_UBMC: '< 4.05.00',
+            EC262D4U_UBMC: '< 1.05.00',
+            E3C252D4U_UBMC: '< 5.04.00',
+            X12SPL_UBMC: null,
+            X12STL_UBMC: null,
+            H11SSL_UBMC: null,
+            X11SCH_UBMC: null,
+        };
+
+        const APPROVED_CPLD = {
+            GENOA2D24TM3_CPLD: '3.05',
+            SPC621D8_CPLD: '0.07',
+        };
+
+        const UNAPPROVED_CPLD = {
+            GENOA2D24TM3_UCPLD: '≠  3.05',
+            SPC621D8_UCPLD: '< 0.07',
+        };
+
+        const MOTHERBOARD_DISPLAY_NAMES = {
+            'GENOA2D24TM3': 'GENOA2D24TM3-2L+',
+            'SPC621D8': 'SPC621D8',
+            'EC262D4U': 'EC262D4U',
+            'E3C252D4U': 'E3C252D4U',
+            'X12SPL': 'X12SPL-F',
+            'X12STL': 'X12STL-F',
+            'H11SSL': 'H11SSL-i',
+            'X11SCH': 'X11SCH-LN4F',
+        };
+
+        const RAID_CONTROLLERS = {
+            '9560-8i': { displayName: 'Broadcom 9560-8i', shippingVersion: '52.31.0-5827' },
+            '9460-8i': { displayName: 'Broadcom 9460-8i', shippingVersion: '51.23.0-4273' },
+        };
+
+function formatVersion(approved, unapproved) {
+    let html = '';
+    
+    // Approved row
+    html += `<div class="version-row">`;
+    html += `<div class="version-label version-label-approved">Approved:</div>`;
+    html += `<div class="version-value">${approved !== null && approved !== undefined && approved !== '' ? approved : '—'}</div>`;
+    html += `</div>`;
+
+    // Unapproved row
+    html += `<div class="version-row">`;
+    html += `<div class="version-label version-label-unapproved">Unapproved:</div>`;
+    html += `<div class="version-value">${unapproved !== null && unapproved !== undefined && unapproved !== '' ? unapproved : 'No restrictions'}</div>`;
+    html += `</div>`;
+    
+    return html;
+}
+
+function formatShippingVersion(version) {
+    return `<div class="version-row" style="border-bottom: none;"><div class="version-label version-label-shipping">Shipping Version:</div><div class="version-value">${version}</div></div>`;
+}
+
+function getImportantNotice() {
+    return `<div class="important-notice"><h3>Important Notice</h3><p>If you receive a component with a version that differs from the versions listed above, please contact ExaGrid Hardware Engineering before proceeding.</p><p>Contact: <a href="mailto:HardwareEngineering@exagrid.com" class="email-link">HardwareEngineering@exagrid.com</a></p></div>`;
+}
+
+function displayMotherboardInfo(motherboardKey) {
+    document.body.style.background = 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 55%, #1e3a8a 100%)';
+    const resultsDiv = document.getElementById('results');
+    const biosApproved = APPROVED_BIOS[`${motherboardKey}_BIOS`];
+    const biosUnapproved = UNAPPROVED_BIOS[`${motherboardKey}_UBIOS`];
+    const bmcApproved = APPROVED_BMC[`${motherboardKey}_BMC`];
+    const bmcUnapproved = UNAPPROVED_BMC[`${motherboardKey}_UBMC`];
+    const cpldApproved = APPROVED_CPLD[`${motherboardKey}_CPLD`];
+    const cpldUnapproved = UNAPPROVED_CPLD[`${motherboardKey}_UCPLD`];
+    
+    resultsDiv.innerHTML = '';
+    
+    const cards = [];
+    cards.push(`<div class="firmware-card"><div class="firmware-header"><div class="firmware-header-left"><div><div class="firmware-meta">Motherboard</div><div class="firmware-title">BIOS Version</div></div></div></div>${formatVersion(biosApproved, biosUnapproved)}</div>`);
+    cards.push(`<div class="firmware-card"><div class="firmware-header"><div class="firmware-header-left"><div><div class="firmware-meta">Motherboard</div><div class="firmware-title">BMC Version</div></div></div></div>${formatVersion(bmcApproved, bmcUnapproved)}</div>`);
+    
+    if (cpldApproved || cpldUnapproved) {
+        let cpldLabel = 'CPLD Version';
+        if (motherboardKey === 'GENOA2D24TM3') cpldLabel = 'Backplane CPLD Version';
+        else if (motherboardKey === 'SPC621D8') cpldLabel = 'Motherboard CPLD Version';
+        cards.push(`<div class="firmware-card"><div class="firmware-header"><div class="firmware-header-left"><div><div class="firmware-meta">Motherboard</div><div class="firmware-title">${cpldLabel}</div></div></div></div>${formatVersion(cpldApproved, cpldUnapproved)}</div>`);
+    }
+
+    cards.forEach((cardHtml, i) => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHtml;
+        const card = tempDiv.firstElementChild;
+        resultsDiv.appendChild(card);
+        requestAnimationFrame(() => {
+            setTimeout(() => card.classList.add('visible'), i * 60);
+        });
+    });
+
+    const noticeDiv = document.createElement('div');
+    noticeDiv.innerHTML = getImportantNotice();
+    resultsDiv.appendChild(noticeDiv.firstElementChild);
+    
+    resultsDiv.classList.add('show');
+}
+
+function displayRaidInfo(raidKey) {
+    document.body.style.background = 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 55%, #1e3a8a 100%)';
+    const resultsDiv = document.getElementById('results');
+    const raidInfo = RAID_CONTROLLERS[raidKey];
+    
+    resultsDiv.innerHTML = '';
+    
+    const cardHtml = `<div class="firmware-card"><div class="firmware-header"><div class="firmware-header-left"><div><div class="firmware-meta">RAID Controller</div><div class="firmware-title">Firmware Version</div></div></div></div>${formatShippingVersion(raidInfo.shippingVersion)}</div>`;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cardHtml;
+    const card = tempDiv.firstElementChild;
+    resultsDiv.appendChild(card);
+    requestAnimationFrame(() => card.classList.add('visible'));
+
+    const noticeDiv = document.createElement('div');
+    noticeDiv.innerHTML = getImportantNotice();
+    resultsDiv.appendChild(noticeDiv.firstElementChild);
+    
+    resultsDiv.classList.add('show');
+}
+
+function showNoResults() {
+    document.body.style.background = 'linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 55%, var(--grad-end) 100%)';
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `<div class="state-msg"><span class="icon">📋</span>Select a motherboard or RAID controller from the dropdowns above to view firmware versions.</div>`;
+    resultsDiv.classList.remove('show');
+}
+
+        document.getElementById('motherboardSelect').addEventListener('change', function(event) {
+            const selectedMotherboard = event.target.value;
+            if (!selectedMotherboard) { showNoResults(); return; }
+            document.getElementById('raidSelect').value = '';
+            displayMotherboardInfo(selectedMotherboard);
+        });
+
+        document.getElementById('raidSelect').addEventListener('change', function(event) {
+            const selectedRaid = event.target.value;
+            if (!selectedRaid) { showNoResults(); return; }
+            document.getElementById('motherboardSelect').value = '';
+            displayRaidInfo(selectedRaid);
+        });
+
+        // Initialize
+        showNoResults();
+    </script>
+</body>
+</html>

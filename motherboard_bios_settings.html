@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIOS Configuration Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --grad-start:  #1e3a8a;
+            --grad-mid:    #065f46;
+            --grad-end:    #047857;
+            --accent:      #34d399;
+            --accent-dim:  rgba(52, 211, 153, 0.15);
+            --card-bg:     rgba(255, 255, 255, 0.07);
+            --card-border: rgba(255, 255, 255, 0.16);
+            --text:        #ffffff;
+            --text-muted:  rgba(255, 255, 255, 0.70);
+            --text-dim:    rgba(255, 255, 255, 0.40);
+            --amber:       #fbbf24;
+            --amber-dim:   rgba(251, 191, 36, 0.15);
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 17px;
+            background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-mid) 55%, var(--grad-end) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+        
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0; }
+        .orb-1 { width: 480px; height: 480px; background: #3b82f6; top: -120px; left: -120px; }
+        .orb-2 { width: 360px; height: 360px; background: #10b981; bottom: -80px; right: -80px; }
+        .orb-3 { width: 240px; height: 240px; background: #6366f1; top: 40%; left: 60%; }
+        
+        .wrapper {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto;
+            padding: 60px 32px 80px;
+        }
+        
+        .header { text-align: center; margin-bottom: 36px; animation: fadeUp 0.7s ease both; }
+        .header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px; }
+        .header h1 span {
+            background: linear-gradient(90deg, #a7f3d0, #6ee7b7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .header p { font-size: 1.05rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
+        .divider { width: 48px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); margin: 24px auto 0; border-radius: 2px; }
+        
+        .back-link {
+            display: inline-flex; align-items: center; gap: 7px;
+            font-size: 0.875rem; font-weight: 500; color: var(--text-muted);
+            text-decoration: none; margin-bottom: 36px; transition: color 0.2s;
+            animation: fadeUp 0.7s ease both;
+        }
+        .back-link:hover { color: var(--accent); }
+        
+        .card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .entry-card { padding: 28px 32px; margin-bottom: 24px; animation: fadeUp 0.7s 0.1s ease both; }
+        .section-title {
+            font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
+            letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; opacity: 0.85;
+        }
+        
+        .field-group { display: flex; flex-direction: column; gap: 7px; position: relative; margin-bottom: 24px; }
+        label { font-size: 0.82rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.03em; }
+        
+        .select-wrap { position: relative; }
+        .select-wrap::after {
+            content: '▾'; position: absolute; right: 14px; top: 50%;
+            transform: translateY(-50%); font-size: 0.85rem; color: var(--accent); pointer-events: none;
+        }
+        select {
+            font-family: 'DM Sans', sans-serif; font-size: 1rem; color: var(--text);
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--card-border);
+            border-radius: 10px; padding: 10px 40px 10px 16px; width: 100%;
+            cursor: pointer; appearance: none; -webkit-appearance: none; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus, select:hover { border-color: rgba(52, 211, 153, 0.45); box-shadow: 0 0 0 3px var(--accent-dim); }
+        select option { background: #0f3460; color: #fff; }
+        
+        /* BIOS Result Specifics */
+        .results-card { padding: 0; overflow: hidden; animation: fadeUp 0.7s 0.15s ease both; }
+        .results-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 28px; border-bottom: 1px solid var(--card-border);
+        }
+        .results-content { padding: 28px 32px; }
+        
+        .bios-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .bios-section:last-child { border-bottom: none; margin-bottom: 0; }
+        
+        .bios-section h3 {
+            font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 500;
+            color: var(--accent); margin-bottom: 16px; letter-spacing: 0.05em;
+        }
+        
+        .step {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .step::before {
+            content: '→';
+            position: absolute; left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .sub-step {
+            margin-left: 24px;
+            margin-top: 8px;
+            font-size: 0.88rem;
+            color: var(--text-dim);
+            display: flex;
+            gap: 8px;
+        }
+        .sub-step::before { content: '•'; color: var(--accent); }
+        
+        .settings-table {
+            width: 100%;
+            margin-top: 12px;
+            border-collapse: collapse;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .settings-table td {
+            padding: 8px 12px;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+        }
+        .settings-table td:first-child {
+            width: 60%;
+            color: var(--text);
+        }
+        .settings-table td:last-child {
+            color: var(--accent);
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .note {
+            background: var(--amber-dim);
+            border-left: 3px solid var(--amber);
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: var(--amber);
+            line-height: 1.5;
+        }
+        
+        .link {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .link:hover { border-color: var(--accent); }
+        
+        .empty-state {
+            text-align: center; padding: 64px 28px;
+            color: var(--text-dim); font-size: 1rem; font-style: italic;
+        }
+        
+        .footer {
+            text-align: center; margin-top: 56px; color: var(--text-muted);
+            font-size: 0.8rem; font-weight: 300; letter-spacing: 0.03em;
+            animation: fadeUp 0.7s 0.35s ease both;
+        }
+        .footer span {
+            display: inline-block; width: 3px; height: 3px; background: var(--accent);
+            border-radius: 50%; margin: 0 8px; vertical-align: middle; opacity: 0.6;
+        }
+        
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    
+    <div class="wrapper">
+        <a class="back-link" href="index.html">&#8592; Back to Hardware Apps</a>
+        
+        <header class="header">
+            <h1>BIOS <span>Configuration Guide</span></h1>
+            <p>Select a motherboard to view detailed BIOS configuration instructions for ExaGrid deployments</p>
+            <div class="divider"></div>
+        </header>
+        
+        <div class="field-group">
+            <label for="motherboardSelect">Select Motherboard:</label>
+            <div class="select-wrap">
+                <select id="motherboardSelect">
+                    <option value="">-- Choose a Motherboard --</option>
+                </select>
+            </div>
+        </div>
+        
+        <div id="results" class="card results-card">
+            <div class="results-header">
+                <div class="section-title" style="margin-bottom:0;">Configuration Details</div>
+            </div>
+            <div id="results-content" class="results-content">
+                <div class="empty-state">Select a motherboard to begin</div>
+            </div>
+        </div>
+        
+        <footer class="footer">
+            ExaGrid Systems — Manufacturing &amp; Hardware Engineering - Internal Use Only
+        </footer>
+    </div>
+    
+    <script>
+        const BIOS_CONFIG = {
+            'X9SCL-F': {
+                name: 'X9SCL-F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup - Main Tab',
+                        steps: [
+                            { text: 'On power up, press DEL key to enter BIOS', substeps: [] },
+                            { text: 'Press F3 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set Date and Time using UTC time zone', substeps: [{ text: 'Reference: <a href="http://www.time.gov/timezone.cgi?UTC/s/0" class="link" target="_blank">http://www.time.gov/timezone.cgi?UTC/s/0</a>' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to Advanced tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait For "F1" If Error', value: 'Disabled' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCIe/PCI/PnP Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select PCIe/PCI/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI-E Slot 4 OPROM', value: 'Disabled', note: 'if present' },
+                                { name: 'PCI-E Slot 7 OPROM', value: 'Disabled', note: 'if present' },
+                                { name: 'Load Onboard LAN 1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Hardware Health Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select Hardware Health Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Fan Speed Control Mode', value: 'Full Speed' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'IPMI Tab - System Event Log',
+                        steps: [
+                            { text: 'Navigate to IPMI tab', substeps: [] },
+                            { text: 'Select System Event Log', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SEL Components', value: 'Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Network Device BBS Priorities',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Network Device BBS Priorities', substeps: [] },
+                            { text: 'Disable ALL Network Boot Options listed', substeps: [{ text: 'Note: Options will vary depending on system configuration' }] }
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit tab', substeps: [] },
+                            { text: 'Select Save Changes and Exit', substeps: [] },
+                            { text: 'At "Save configuration and reset?" prompt:', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    }
+                ]
+            },
+            'X10SLL-F': {
+                name: 'X10SLL-F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup - Main Tab',
+                        steps: [
+                            { text: 'On power up, press DEL key to enter BIOS', substeps: [] },
+                            { text: 'Press F3 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set Date and Time using UTC time zone', substeps: [{ text: 'Reference: <a href="http://www.time.gov/timezone.cgi?UTC/s/0" class="link" target="_blank">http://www.time.gov/timezone.cgi?UTC/s/0</a>' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to Advanced tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait For "F1" If Error', value: 'Disabled' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCIe/PCI/PnP Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select PCIe/PCI/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI-E Slot 4 OPROM', value: 'Disabled', note: 'if present' },
+                                { name: 'PCI-E Slot 5 OPROM', value: 'Disabled', note: 'if present' },
+                                { name: 'Onboard LAN 1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'IPMI Tab - System Event Log',
+                        steps: [
+                            { text: 'Navigate to IPMI tab', substeps: [] },
+                            { text: 'Select System Event Log', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SEL Components', value: 'Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Network Device BBS Priorities',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Network Device BBS Priorities', substeps: [] },
+                            { text: 'Disable ALL Network Boot Options listed', substeps: [{ text: 'Note: Options will vary depending on system configuration' }] }
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit tab', substeps: [] },
+                            { text: 'Select Save Changes and Reset', substeps: [] },
+                            { text: 'At "Save configuration and reset?" prompt:', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    }
+                ]
+            },
+            'X10SRL-F': {
+                name: 'X10SRL-F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup - Main Tab',
+                        steps: [
+                            { text: 'On power up, press DEL key to enter BIOS', substeps: [] },
+                            { text: 'Press F3 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set Date and Time using UTC time zone', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to Advanced tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait For "F1" If Error', value: 'Disabled' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select SATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - sSATA Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select sSATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'sSATA Controller', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCIe/PCI/PnP Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select PCIe/PCI/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Onboard LAN 1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'IPMI Tab - System Event Log',
+                        steps: [
+                            { text: 'Navigate to IPMI tab', substeps: [] },
+                            { text: 'Select System Event Log', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SEL Components', value: 'Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Network Device BBS Priorities',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Network Device BBS Priorities', substeps: [] },
+                            { text: 'Disable ALL Network Boot Options listed', substeps: [{ text: 'Note: Options will vary depending on system configuration' }] }
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit tab', substeps: [] },
+                            { text: 'Select Save Changes and Reset', substeps: [] },
+                            { text: 'At "Save configuration and reset?" prompt:', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    }
+                ]
+            },
+            'X11SSH-LN4F': {
+                name: 'X11SSH-LN4F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] },
+                            { text: 'Press F3 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set Date and Time using UTC time zone', substeps: [{ text: 'Reference: <a href="http://www.time.gov/timezone.cgi?UTC/s/0" class="link" target="_blank">http://www.time.gov/timezone.cgi?UTC/s/0</a>' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for F1 If Error', value: 'Disabled' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select SATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller(s)', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI/PCIe/PnP Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCI/PCIe/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCH SLOT4 PCI-E 3.0 X4(IN X8) OPROM', value: 'Disabled' },
+                                { name: 'CPU SLOT5 PCI-E 3.0 X8 OPROM', value: 'Disabled' },
+                                { name: 'Onboard LAN1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Chipset Configuration (Conditional)',
+                        steps: [
+                            { text: 'NOTE: This step is only required if using the E3-12*5-v5 CPU. If not using this CPU, skip to Boot Tab section.', substeps: [] },
+                            { text: 'Under Advanced tab, select Chipset Configuration', substeps: [] },
+                            { text: 'Choose System Agent (SA) Configuration', substeps: [] },
+                            { text: 'Choose Graphics Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Internal Graphics', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Boot Mode Select',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Boot Mode Select', substeps: [] },
+                            { text: 'Choose LEGACY', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Network Device BBS Priorities',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Network Device BBS Priorities', substeps: [] },
+                            { text: 'Disable ALL Network Boot Options listed', substeps: [{ text: 'Note: Options will vary depending on system configuration' }] }
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit tab', substeps: [] },
+                            { text: 'Select Save Changes and Reset', substeps: [] },
+                            { text: 'At "Save configuration and reset?" prompt:', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    }
+                ]
+            },
+            'X11SCH-LN4F': {
+                name: 'X11SCH-LN4F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Fast Boot', value: 'Disabled' },
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for F1 If Error', value: 'Disabled' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA and RSTe Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select SATA and RSTe Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller(s)', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI/PCIe/PnP Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCI/PCIe/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Onboard LAN1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - FIXED BOOT ORDER Priorities',
+                        steps: [
+                            { text: 'Hit Esc and navigate to the Boot tab', substeps: [] },
+                            { text: 'Under FIXED BOOT ORDER Priorities, configure the following:', substeps: [], settings: [
+                                { name: 'DUAL Boot Option #1', value: 'Hard Disk' },
+                                { name: 'DUAL Boot Option #2', value: 'USB Key' },
+                                { name: 'DUAL Boot Option #3', value: 'UEFI AP:UEFI: Built-in EFI Shell' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F4 and choose to Save & Exit', substeps: [{ text: 'System will reboot' }] }
+                        ]
+                    }
+                ]
+            },
+            'H11SSL-i': {
+                name: 'H11SSL-i',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for F1 If Error', value: 'Disabled' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select SATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller(s)', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI/PCIe/PnP Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCI/PCIe/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Onboard LAN1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - FIXED BOOT ORDER Priorities',
+                        steps: [
+                            { text: 'Hit Esc and navigate to the Boot tab', substeps: [] },
+                            { text: 'Under FIXED BOOT ORDER Priorities, configure the following:', substeps: [], settings: [
+                                { name: 'DUAL Boot Option #1', value: 'Hard Disk' },
+                                { name: 'DUAL Boot Option #2', value: 'USB Key' },
+                                { name: 'DUAL Boot Option #3', value: 'UEFI AP:UEFI: Built-in EFI Shell' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F4 and choose to Save & Exit', substeps: [{ text: 'System will reboot' }] }
+                        ]
+                    }
+                ]
+            },
+            'X12STL-F': {
+                name: 'X12STL-F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for F1 If Error', value: 'Disabled' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA and RSTe Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select SATA and RSTe Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller(s)', value: 'Disabled' }
+                            ]}
+                        ]
+                    }
+                ]
+            },
+            'X10DRH-iLN4': {
+                name: 'X10DRH-iLN4',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup - Main Tab',
+                        steps: [
+                            { text: 'On power up, press DEL key to enter BIOS', substeps: [] },
+                            { text: 'Press F3 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set Date and Time using UTC time zone', substeps: [{ text: 'Reference: <a href="http://www.time.gov/timezone.cgi?UTC/s/0" class="link" target="_blank">http://www.time.gov/timezone.cgi?UTC/s/0</a>' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to Advanced tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait For "F1" If Error', value: 'Disabled' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - CPU Configuration',
+                        steps: [
+                            { text: 'Select CPU Configuration', substeps: [] },
+                            { text: 'Scroll down to Advanced Power Management Configuration', substeps: [] },
+                            { text: 'Select Power Technology', substeps: [], settings: [{ name: 'Power Technology', value: 'Custom' }] },
+                            { text: 'Select CPU C State Control', substeps: [] },
+                            { text: 'Select Package C State Limit and configure:', substeps: [], settings: [{ name: 'Package C State Limit', value: 'C0/C1 state' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA Configuration',
+                        steps: [
+                            { text: 'Select SATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [{ name: 'SATA Controller(s)', value: 'Disabled' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - eSATA Configuration',
+                        steps: [
+                            { text: 'Select eSATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [{ name: 'eSATA Controller(s)', value: 'Disabled' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCIe/PCI/PnP Configuration',
+                        steps: [
+                            { text: 'Under the Advanced tab, select PCIe/PCI/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [{ name: 'Onboard LAN 1 Option ROM', value: 'Disabled' }] }
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Boot Mode Select',
+                        steps: [
+                            { text: 'Navigate to Boot tab', substeps: [] },
+                            { text: 'Select Boot Mode Select', substeps: [] },
+                            { text: 'Choose LEGACY', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit tab', substeps: [] },
+                            { text: 'Select Save Changes and Reset', substeps: [] },
+                            { text: 'At "Save configuration and reset?" prompt:', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    }
+                ]
+            },
+            'X12SPL-F': {
+                name: 'X12SPL-F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Select Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for F1 If Error', value: 'Disabled' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' },
+                                { name: 'Power Button Function', value: '4 Seconds Override' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Intel VMD Technology Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, navigate to Chipset Configuration', substeps: [] },
+                            { text: 'Select North Bridge', substeps: [] },
+                            { text: 'Select IIO Configuration', substeps: [] },
+                            { text: 'Select Intel VMD Technology and configure:', substeps: [], settings: [
+                                { name: 'NVMe Mode Switch', value: 'Manual' }
+                            ]},
+                            { text: 'Select Intel VMD for Volume Management Device on CPU1', substeps: [
+                                { text: 'Confirm all VMDs are disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCH SATA Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCH SATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCH sSATA Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCH sSATA Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'sSATA Controller', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI/PCIe/PnP Configuration',
+                        steps: [
+                            { text: 'Under Advanced tab, select PCI/PCIe/PnP Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Onboard LAN1 Option ROM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Boot Mode and FIXED BOOT ORDER Priorities',
+                        steps: [
+                            { text: 'Hit Esc and navigate to the Boot tab', substeps: [] },
+                            { text: 'Change Boot Mode Select to Dual', substeps: [] },
+                            { text: 'Under FIXED BOOT ORDER Priorities, configure the following:', substeps: [], settings: [
+                                { name: 'DUAL Boot Option #1', value: 'Hard Disk' },
+                                { name: 'DUAL Boot Option #2', value: 'USB Key' },
+                                { name: 'DUAL Boot Option #3', value: 'UEFI AP:UEFI: Built-in EFI Shell' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F4 and choose to Save & Exit', substeps: [{ text: 'System will reboot' }] }
+                        ]
+                    }
+                ]
+            },
+            'E3C252D4U': {
+                name: 'E3C252D4U',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] },
+                            { text: 'Press the F9 key', substeps: [] },
+                            { text: 'Set Factory Defaults by answering "YES" in the dialog', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI-E ASPM Configuration',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Navigate to: Advanced > Chipset Configuration > PCI-E ASPM > PCI-E ASPM Support Global', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI-E ASPM Support Global', value: 'Disabled', note: 'change from Auto' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA Storage Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Storage Configuration > SATA Storage Configuration > SATA Controller', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'SATA Controller', value: 'Disabled', note: 'change from Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Network Stack',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Network Stack > Network Stack', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Network Stack', value: 'Disabled', note: 'change from Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Server Mgmt Tab - BMC Tools',
+                        steps: [
+                            { text: 'Navigate to: Server Mgmt > BMC Tools > Restore AC Power Loss', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Restore AC Power Loss', value: 'Power On', note: 'change from No change' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F4 and choose to Save & Exit', substeps: [{ text: 'System will reboot' }] }
+                        ]
+                    }
+                ]
+            },
+            'SPC621D8': {
+                name: 'SPC621D8',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE or F2 key during boot to enter the BIOS menu', substeps: [] },
+                            { text: 'Press the F9 key', substeps: [] },
+                            { text: 'Set Factory Defaults by answering "YES" in the dialog', substeps: [] },
+                            { text: 'Navigate to: Server Mgmt > BMC Tools > Load BMC Default Settings', substeps: [{ text: 'Select Yes' }] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Chipset Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Chipset Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI-E ASPM Support (Global)', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'Restore AC Power Loss', value: 'Power On', note: 'change from Last State' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Storage Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Storage Configuration > sSATA_0 : VENDOR MODEL', substeps: [] },
+                            { text: 'Configure sSATA_0 settings:', substeps: [], settings: [
+                                { name: 'Hot Plug', value: 'Enabled' },
+                                { name: 'SATA Device Type', value: 'Solid State Drive' }
+                            ]},
+                            { text: 'Navigate to: Advanced > Storage Configuration > sSATA_1 : VENDOR MODEL', substeps: [] },
+                            { text: 'Configure sSATA_1 settings:', substeps: [], settings: [
+                                { name: 'Hot Plug', value: 'Enabled' },
+                                { name: 'SATA Device Type', value: 'Solid State Drive' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - USB Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > USB Configuration > Legacy USB Support', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Legacy USB Support', value: 'UEFI Setup Only', note: 'change from Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Network Stack Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Network Stack Configuration > Network Stack', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Network Stack', value: 'Disabled', note: 'change from Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - CSM (Compatibility Support Module)',
+                        steps: [
+                            { text: 'Navigate to: Boot > CSM (Compatibility Support Module)', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'CSM', value: 'Disabled', note: 'change from Enabled' },
+                                { name: 'PCIE1 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'PCIE2 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'PCIE3 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'PCIE4 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'PCIE5 Slot OpROM', value: 'UEFI', note: 'change from Auto' },
+                                { name: 'PCIE6 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'PCIE7 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'M2_1 Slot OpROM', value: 'Disabled', note: 'change from Auto' },
+                                { name: 'M2_2 Slot OpROM', value: 'Disabled', note: 'change from Auto' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F10 to save changes and exit', substeps: [] }
+                        ]
+                    }
+                ]
+            },
+            'EC262D4U': {
+                name: 'EC262D4U',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'Initial Setup',
+                        steps: [
+                            { text: 'Turn on the system and press DELETE key during boot to enter the BIOS menu', substeps: [] },
+                            { text: 'Press the F9 key', substeps: [] },
+                            { text: 'Set Factory Defaults by answering "YES" in the dialog', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCI-E ASPM Configuration',
+                        steps: [
+                            { text: 'Navigate to the Advanced Tab', substeps: [] },
+                            { text: 'Navigate to: Advanced > Chipset Configuration > PCI-E ASPM > PCI-E ASPM Support Global', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI-E ASPM Support Global', value: 'Disabled', note: 'change from Auto' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Storage Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Storage Configuration > OCU1_SATA_0 : VENDOR MODEL', substeps: [] },
+                            { text: 'Configure OCU1_SATA_0 settings:', substeps: [], settings: [
+                                { name: 'Hot Plug', value: 'Enabled' },
+                                { name: 'SATA Device Type', value: 'Solid State Drive' }
+                            ]},
+                            { text: 'Navigate to: Advanced > Storage Configuration > OCU1_SATA_1 : VENDOR MODEL', substeps: [] },
+                            { text: 'Configure OCU1_SATA_1 settings:', substeps: [], settings: [
+                                { name: 'Hot Plug', value: 'Enabled' },
+                                { name: 'SATA Device Type', value: 'Solid State Drive' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Network Stack',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Network Stack > Network Stack', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Network Stack', value: 'Disabled', note: 'change from Enabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Server Mgmt Tab - BMC Tools',
+                        steps: [
+                            { text: 'Navigate to: Server Mgmt > BMC Tools > Restore AC Power Loss', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Restore AC Power Loss', value: 'Power On', note: 'change from No change' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Press F4 and choose to Save & Exit', substeps: [{ text: 'System will reboot' }] }
+                        ]
+                    }
+                ]
+            },
+            'X8DTi-LN4F': {
+                name: 'X8DTi-LN4F',
+                manufacturer: 'Supermicro',
+                sections: [
+                    {
+                        title: 'Initial Setup - Main Menu',
+                        steps: [
+                            { text: 'At the Main menu, press F9 to Load Optimal Defaults', substeps: [{ text: 'Select OK to confirm' }] },
+                            { text: 'Set the System Time and Date to UTC if incorrect', substeps: [] }
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Boot Feature',
+                        steps: [
+                            { text: 'Navigate to Advanced tab', substeps: [] },
+                            { text: 'Navigate to Boot Feature', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Quick Boot', value: 'Disabled' },
+                                { name: 'Quiet Boot', value: 'Disabled' },
+                                { name: 'Wait for "F1" If Error', value: 'Disabled' },
+                                { name: 'Power Button Function', value: '4 seconds override' },
+                                { name: 'Restore on AC Power Loss', value: 'Power On' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SATA/Floppy Configuration',
+                        steps: [
+                            { text: 'Navigate to Advanced > SATA/Floppy Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Floppy A', value: 'Disabled' },
+                                { name: 'SATA#1', value: 'Disabled' },
+                                { name: 'SATA#2', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - SuperIO Configuration',
+                        steps: [
+                            { text: 'Navigate to Advanced > SuperIO Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'OnBoard Floppy Controller', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Remote Access Configuration',
+                        steps: [
+                            { text: 'Navigate to Advanced > Remote Access Configuration', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Remote Access', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Hardware Health Configuration',
+                        steps: [
+                            { text: 'Navigate to Advanced > Hardware Health Configuration', substeps: [] },
+                            { text: 'Navigate to System Fan Monitor', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Fan Speed Control Modes', value: 'Full Speed' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Hard Disk Drives (Conditional - If RAID is configured)',
+                        steps: [
+                            { text: 'NOTE: This step is only required if RAID is configured', substeps: [] },
+                            { text: 'Navigate to Boot > Hard Disk Drives', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: '1st Drive', value: 'RAID:(Bus 05 Dev 0]' },
+                                { name: '2nd Drive', value: 'USB:MICRON eUSB DI', note: 'Internal SSD identification may vary - distinguish from manufacturing USB key' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Boot Device Priority (Conditional - If RAID is installed)',
+                        steps: [
+                            { text: 'NOTE: This step is only required if RAID is installed', substeps: [] },
+                            { text: 'Navigate to Boot > Boot Device Priority', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: '1st Boot Device', value: 'RAID:(Bus 05 Dev 0]' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab - Removable Drives (Optional)',
+                        steps: [
+                            { text: 'NOTE: If this option does not appear, it is OK to skip this step', substeps: [] },
+                            { text: 'If possible, navigate to Boot > Removable Drives', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: '1st Drive', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Save and Exit',
+                        steps: [
+                            { text: 'Navigate to Exit > Save Changes and Exit', substeps: [] },
+                            { text: 'Select OK', substeps: [] }
+                        ]
+                    }
+                ]
+            },
+            'GENOA2D24TM3-2L+': {
+                name: 'GENOA2D24TM3-2L+',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'Advanced Tab - ACPI SRAT L3 Cache as NUMA Domain',
+                        steps: [
+                            { text: 'Navigate to: Advanced > AMD CBS > DF Common Options > ACPI > ACPI SRAT L3 Cache as NUMA Domain', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'ACPI SRAT L3 Cache as NUMA Domain', value: 'Enabled', note: 'change from Auto' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - NUMA Nodes Per Socket',
+                        steps: [
+                            { text: 'Navigate to: Advanced > AMD CBS > DF Common Options > Memory Addressing > NUMA Nodes Per Socket', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'NUMA Nodes Per Socket', value: 'Auto', note: 'No Change, confirm only' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Chipset Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Chipset Configuration > PCIE Link Width', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCIE1 (CPU 0 P2) Link Width', value: '[x8x4x4]', note: 'No Change, confirm only' },
+                                { name: 'PCIE2 (CPU 0 P1) Link Width', value: '[x16]', note: 'No Change, confirm only' },
+                                { name: 'PCIE2 (CPU0 P3) Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' },
+                                { name: 'PCIE3 (CPU1 P0) Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' },
+                                { name: 'PCIE3 (CPU1 P1) Link Width', value: '[x16]', note: 'No Change, confirm only' },
+                                { name: 'OCP1 Link Width', value: '[x16]', note: 'No Change, confirm only' },
+                                { name: 'MCIO2/MCIO1 Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' },
+                                { name: 'MCIO4/MCIO3 Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' },
+                                { name: 'MCIO6/MCIO5 Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' },
+                                { name: 'MCIO8/MCIO7 Link Width', value: '[x4x4x4x4]', note: 'No Change, confirm only' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Server Mgmt Tab - BMC Tools',
+                        steps: [
+                            { text: 'Navigate to: Server Mgmt > BMC Tools > Restore AC Power Loss', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Restore AC Power Loss', value: 'Power On', note: 'change from No change' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Boot Tab',
+                        steps: [
+                            { text: 'Navigate to: Boot', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Boot Option #1', value: 'Disabled', note: 'Default Hard Drive' },
+                                { name: 'Boot Option #2', value: 'NVME', note: 'No Change, confirm only' },
+                                { name: 'Boot Option #3', value: 'Disabled', note: 'Default CD/DVD' },
+                                { name: 'Boot Option #4', value: 'USB Device', note: 'No Change, confirm only' },
+                                { name: 'Boot Option #5', value: 'Disabled', note: 'Default Network' },
+                                { name: 'Boot Option #6', value: 'UEFI AP: UEFI: Built-in EFI Shell', note: 'No Change, confirm only' }
+                            ]}
+                        ]
+                    }
+                ]
+            }
+        };
+        
+        function populateDropdown() {
+            const select = document.getElementById('motherboardSelect');
+            const motherboards = Object.keys(BIOS_CONFIG).sort();
+            
+            motherboards.forEach(mb => {
+                const option = document.createElement('option');
+                option.value = mb;
+                option.textContent = mb;
+                select.appendChild(option);
+            });
+        }
+        
+        function displayResults(mbKey) {
+            const resultsDiv = document.getElementById('results-content');
+            const config = BIOS_CONFIG[mbKey];
+            
+            if (!config) {
+                resultsDiv.innerHTML = '<div class="empty-state">No configuration found for this motherboard.</div>';
+                return;
+            }
+            
+            let html = `<div class="section-title" style="margin-bottom: 24px; font-size: 1.2rem; color: var(--text);">${config.name} - ${config.manufacturer}</div>`;
+            
+            config.sections.forEach(section => {
+                html += `<div class="bios-section">
+                            <h3>${section.title}</h3>`;
+                
+                section.steps.forEach(step => {
+                    html += `<div class="step">${step.text}</div>`;
+                    
+                    if (step.substeps && step.substeps.length > 0) {
+                        step.substeps.forEach(ss => {
+                            html += `<div class="sub-step">${ss.text}</div>`;
+                        });
+                    }
+                    
+                    if (step.settings && step.settings.length > 0) {
+                        html += `<table class="settings-table">`;
+                        step.settings.forEach(set => {
+                            html += `<tr>
+                                        <td>${set.name} ${set.note ? `<span style="font-size:0.7rem; opacity:0.6; font-style:italic;">(${set.note})</span>` : ''}</td>
+                                        <td>${set.value}</td>
+                                     </tr>`;
+                        });
+                        html += `</table>`;
+                    }
+                });
+                
+                html += `</div>`;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        document.getElementById('motherboardSelect').addEventListener('change', (e) => {
+            displayResults(e.target.value);
+        });
+        
+        document.addEventListener('DOMContentLoaded', populateDropdown);
+    </script>
+</body>
+</html>
