@@ -8,22 +8,24 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --grad-start:  #1e3a8a;
-            --grad-mid:    #065f46;
-            --grad-end:    #047857;
-            --accent:      #34d399;
-            --accent-dim:  rgba(52, 211, 153, 0.15);
-            --card-bg:     rgba(255, 255, 255, 0.07);
-            --card-border: rgba(255, 255, 255, 0.16);
-            --text:        #ffffff;
-            --text-muted:  rgba(255, 255, 255, 0.70);
-            --text-dim:    rgba(255, 255, 255, 0.40);
-            --amber:       #fbbf24;
-            --amber-dim:   rgba(251, 191, 36, 0.15);
-        }
-        
+
+:root {
+    --grad-start:  #1e3a8a;
+    --grad-mid:    #065f46;
+    --grad-end:    #047857;
+    --accent:      #34d399;
+    --accent-dim:  rgba(52, 211, 153, 0.15);
+    --accent-glow: rgba(52, 211, 153, 0.25);
+    --row-hover:   rgba(52, 211, 153, 0.09);
+    --card-bg:     rgba(255, 255, 255, 0.07);
+    --card-border: rgba(255, 255, 255, 0.16);
+    --text:        #ffffff;
+    --text-muted:  rgba(255, 255, 255, 0.70);
+    --text-dim:    rgba(255, 255, 255, 0.40);
+    --amber:       #fbbf24;
+    --amber-dim:   rgba(251, 191, 36, 0.15);
+}
+
         body {
             font-family: 'DM Sans', sans-serif;
             font-size: 17px;
@@ -32,25 +34,25 @@
             color: var(--text);
             overflow-x: hidden;
         }
-        
+
         body::before {
             content: '';
             position: fixed; inset: 0;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
             pointer-events: none; z-index: 0;
         }
-        
+
         .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0; }
         .orb-1 { width: 480px; height: 480px; background: #3b82f6; top: -120px; left: -120px; }
         .orb-2 { width: 360px; height: 360px; background: #10b981; bottom: -80px; right: -80px; }
         .orb-3 { width: 240px; height: 240px; background: #6366f1; top: 40%; left: 60%; }
-        
+
         .wrapper {
             position: relative; z-index: 1;
             max-width: 1100px; margin: 0 auto;
             padding: 60px 32px 80px;
         }
-        
+
         .header { text-align: center; margin-bottom: 36px; animation: fadeUp 0.7s ease both; }
         .header h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px; }
         .header h1 span {
@@ -59,7 +61,7 @@
         }
         .header p { font-size: 1.05rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6; font-weight: 300; }
         .divider { width: 48px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); margin: 24px auto 0; border-radius: 2px; }
-        
+
         .back-link {
             display: inline-flex; align-items: center; gap: 7px;
             font-size: 0.875rem; font-weight: 500; color: var(--text-muted);
@@ -67,136 +69,70 @@
             animation: fadeUp 0.7s ease both;
         }
         .back-link:hover { color: var(--accent); }
-        
-        .card {
-            background: var(--card-bg); border: 1px solid var(--card-border);
-            border-radius: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-        .entry-card { padding: 28px 32px; margin-bottom: 24px; animation: fadeUp 0.7s 0.1s ease both; }
-        .section-title {
-            font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
-            letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; opacity: 0.85;
-        }
-        
-        .field-group { display: flex; flex-direction: column; gap: 7px; position: relative; margin-bottom: 24px; }
-        label { font-size: 0.82rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.03em; }
-        
-        .select-wrap { position: relative; }
-        .select-wrap::after {
-            content: '▾'; position: absolute; right: 14px; top: 50%;
-            transform: translateY(-50%); font-size: 0.85rem; color: var(--accent); pointer-events: none;
-        }
-        select {
-            font-family: 'DM Sans', sans-serif; font-size: 1rem; color: var(--text);
-            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--card-border);
-            border-radius: 10px; padding: 10px 40px 10px 16px; width: 100%;
-            cursor: pointer; appearance: none; -webkit-appearance: none; outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        select:focus, select:hover { border-color: rgba(52, 211, 153, 0.45); box-shadow: 0 0 0 3px var(--accent-dim); }
-        select option { background: #0f3460; color: #fff; }
-        
-        /* BIOS Result Specifics */
-        .results-card { padding: 0; overflow: hidden; animation: fadeUp 0.7s 0.15s ease both; }
-        .results-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 28px; border-bottom: 1px solid var(--card-border);
-        }
-        .results-content { padding: 28px 32px; }
-        
-        .bios-section {
-            margin-bottom: 32px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .bios-section:last-child { border-bottom: none; margin-bottom: 0; }
-        
-        .bios-section h3 {
-            font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 500;
-            color: var(--accent); margin-bottom: 16px; letter-spacing: 0.05em;
-        }
-        
-        .step {
-            margin-bottom: 12px;
-            padding-left: 24px;
-            position: relative;
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-        .step::before {
-            content: '→';
-            position: absolute; left: 0;
-            color: var(--accent);
-            font-weight: bold;
-        }
-        
-        .sub-step {
-            margin-left: 24px;
-            margin-top: 8px;
-            font-size: 0.88rem;
-            color: var(--text-dim);
-            display: flex;
-            gap: 8px;
-        }
-        .sub-step::before { content: '•'; color: var(--accent); }
-        
-        .settings-table {
-            width: 100%;
-            margin-top: 12px;
-            border-collapse: collapse;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.85rem;
-        }
-        .settings-table td {
-            padding: 8px 12px;
-            border: 1px solid var(--card-border);
-            color: var(--text-muted);
-        }
-        .settings-table td:first-child {
-            width: 60%;
-            color: var(--text);
-        }
-        .settings-table td:last-child {
-            color: var(--accent);
-            font-weight: 600;
-            text-align: right;
-        }
-        
-        .note {
-            background: var(--amber-dim);
-            border-left: 3px solid var(--amber);
-            padding: 12px 16px;
-            margin: 16px 0;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.85rem;
-            color: var(--amber);
-            line-height: 1.5;
-        }
-        
-        .link {
-            color: var(--accent);
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-        .link:hover { border-color: var(--accent); }
-        
-        .empty-state {
-            text-align: center; padding: 64px 28px;
-            color: var(--text-dim); font-size: 1rem; font-style: italic;
-        }
-        
-        .footer {
-            text-align: center; margin-top: 56px; color: var(--text-muted);
-            font-size: 0.8rem; font-weight: 300; letter-spacing: 0.03em;
-            animation: fadeUp 0.7s 0.35s ease both;
-        }
-        .footer span {
-            display: inline-block; width: 3px; height: 3px; background: var(--accent);
-            border-radius: 50%; margin: 0 8px; vertical-align: middle; opacity: 0.6;
-        }
-        
+
+.card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.entry-card { padding: 24px 28px; margin-bottom: 28px; animation: fadeUp 0.7s 0.1s ease both; }
+
+.field-group label { display: block; font-size: 0.95rem; font-weight: 500; color: var(--text-muted); margin-bottom: 10px; }
+.select-wrap { position: relative; }
+.select-wrap::after {
+    content: ''; position: absolute; right: 16px; top: 50%;
+    width: 8px; height: 8px; margin-top: -6px;
+    border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg); pointer-events: none;
+}
+
+select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 40px 10px 16px;
+    width: 100%;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+select:focus, select:hover {
+    border-color: rgba(52, 211, 153, 0.45);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+select option { background: #0f3460; color: #fff; }
+
+.results-card { padding: 24px 28px; animation: fadeUp 0.7s 0.2s ease both; margin-bottom: 28px; }
+.section-title { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); opacity: 0.85; margin-bottom: 18px; }
+.results-header { border-bottom: 1px solid var(--card-border); margin-bottom: 22px; }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-dim); font-size: 1.05rem; font-weight: 300; }
+
+.bios-section {
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 20px 26px 22px; margin-bottom: 22px; transition: background 0.25s ease;
+}
+.bios-section:hover { background: var(--row-hover); }
+.bios-section:last-child { margin-bottom: 0; }
+.bios-section h3 {
+    font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em;
+    padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--card-border);
+}
+.step { font-size: 1.05rem; line-height: 1.6; margin: 12px 0 6px; color: var(--text); }
+.sub-step { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); font-weight: 300; margin: 2px 0 6px 22px; padding-left: 12px; border-left: 2px solid var(--accent-dim); }
+.link { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
+.link:hover { color: #a7f3d0; }
+
+.settings-table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; }
+.settings-table td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.11); vertical-align: middle; }
+.settings-table tr:last-child td { border-bottom: none; }
+.settings-table tr:hover { background: var(--row-hover); }
+.settings-table td:first-child { color: var(--text-muted); width: 55%; }
+.settings-table td:last-child { font-family: 'Courier New', monospace; font-size: 1.05rem; color: var(--accent); font-weight: 600; }
+
+.footer { text-align: center; margin-top: 64px; color: var(--text-muted); font-size: 0.95rem; font-weight: 300; letter-spacing: 0.03em; animation: fadeUp 0.7s 0.5s ease both; }
+
         @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -204,37 +140,39 @@
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
-    
-    <div class="wrapper">        
+
+    <div class="wrapper">
         <header class="header">
             <h1>BIOS <span>Configuration Guide</span></h1>
             <p>Select a motherboard to view detailed BIOS configuration instructions for ExaGrid deployments</p>
             <div class="divider"></div>
         </header>
-        
-        <div class="field-group">
-            <label for="motherboardSelect">Select Motherboard:</label>
-            <div class="select-wrap">
-                <select id="motherboardSelect">
-                    <option value="">-- Choose a Motherboard --</option>
-                </select>
+
+        <section class="card entry-card">
+            <div class="field-group">
+                <label for="motherboardSelect">Select Motherboard:</label>
+                <div class="select-wrap">
+                    <select id="motherboardSelect">
+                        <option value="">-- Choose a Motherboard --</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        
+        </section>
+
         <div id="results" class="card results-card">
             <div class="results-header">
-                <div class="section-title" style="margin-bottom:0;">Configuration Details</div>
+                <div class="section-title">Configuration Details</div>
             </div>
             <div id="results-content" class="results-content">
                 <div class="empty-state">Select a motherboard to begin</div>
             </div>
         </div>
-        
+
         <footer class="footer">
-            ExaGrid Systems — Manufacturing &amp; Hardware Engineering - Internal Use Only
+            ExaGrid Systems &mdash; Manufacturing &amp; Hardware Engineering - Internal Use Only
         </footer>
     </div>
-    
+
     <script>
         const BIOS_CONFIG = {
             'X9SCL-F': {
@@ -1219,9 +1157,108 @@
                         ]
                     }
                 ]
+            },
+            'DUBHE': {
+                name: 'DUBHE',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'BMC WebUI - Network and Virtual Devices',
+                        steps: [
+                            { text: 'In the BMC WebUI, configure the following settings:', substeps: [], settings: [
+                                { name: 'Bonding BMC port to eth0', value: 'Enabled' },
+                                { name: 'Virtual Device 1', value: 'Disabled' },
+                                { name: 'Virtual Device 2', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - RC ACPI Settings',
+                        steps: [
+                            { text: 'Navigate to: Advanced > RC ACPI Settings > Native ASPM', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Native ASPM', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCIe Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > PCIe Configuration > PCI Express Root Port SPA3 > PCI Express Root Port SPA3', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'PCI Express Root Port SPA3', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - PCH-IO SATA Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > PCH-IO Configuration > SATA Configuration > Serial ATA Port 0', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Serial ATA Port 0 - SATA Device Type', value: 'SSD' }
+                            ]},
+                            { text: 'Navigate to: Advanced > PCH-IO Configuration > SATA Configuration > Serial ATA Port 1', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Serial ATA Port 1 - SATA Device Type', value: 'SSD' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Network Stack Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Network Stack Configuration > Network Stack', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Network Stack', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Server Mgmt Tab - Power Control Policy',
+                        steps: [
+                            { text: 'Navigate to: Server Mgmt > Power Control Policy > Power Restore', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Power Restore', value: 'Power On' }
+                            ]}
+                        ]
+                    }
+                ]
+            },
+            'Volans': {
+                name: 'Volans',
+                manufacturer: 'ASRockRack',
+                sections: [
+                    {
+                        title: 'BMC WebUI - Network and Virtual Devices',
+                        steps: [
+                            { text: 'In the BMC WebUI, configure the following settings:', substeps: [], settings: [
+                                { name: 'Bonding BMC port to eth0', value: 'Enabled' },
+                                { name: 'Virtual Device 1', value: 'Disabled' },
+                                { name: 'Virtual Device 2', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Advanced Tab - Network Stack Configuration',
+                        steps: [
+                            { text: 'Navigate to: Advanced > Network Stack Configuration > Network Stack', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Network Stack', value: 'Disabled' }
+                            ]}
+                        ]
+                    },
+                    {
+                        title: 'Server Mgmt Tab - Power Control Policy',
+                        steps: [
+                            { text: 'Navigate to: Server Mgmt > Power Control Policy > Power Restore', substeps: [] },
+                            { text: 'Configure the following settings:', substeps: [], settings: [
+                                { name: 'Power Restore', value: 'Power On' }
+                            ]}
+                        ]
+                    }
+                ]
             }
         };
-        
+
         function populateDropdown() {
             const select = document.getElementById('motherboardSelect');
             const motherboards = Object.keys(BIOS_CONFIG).sort();
